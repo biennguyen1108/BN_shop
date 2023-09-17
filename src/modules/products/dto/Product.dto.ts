@@ -6,12 +6,11 @@ export class ProductDTO {
     product_name: string;
     brand: string;
     price: number;
-    product_availability: string;
+    quantity: number;
     sku: number;
-    quantity_sold: number;
-    quantity_inventory: number; 
+    sold_quantity: number;
     status: string;
-    delete_At: Date;
+    delete_at: Date;
     image: string;
     description: string;
     category: Category;

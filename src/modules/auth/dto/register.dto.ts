@@ -7,7 +7,7 @@ export class RegisterDto {
     @IsNotEmpty()
     @IsPhoneNumber('VN', { message: 'Invalid phone number' })
     @Length(10, 11, { message: 'Phone number must be between 10 and 11 digits' })
-    phoneNumber: string;
+    email: string;
   
     @IsNotEmpty()
     @Length(8, undefined, { message: 'Password must be at least 8 characters' })

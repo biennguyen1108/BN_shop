@@ -1,7 +1,6 @@
-// user.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { address_user } from './address_user.entity';
 import { Users } from 'src/modules/users/entities/users.entity';
-import { Entity,PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, ManyToMany } from 'typeorm';
-
 
 @Entity()
 export class Address {
@@ -12,20 +11,34 @@ export class Address {
   address: string;
 
   @Column()
-  consignee_name: string
+  consignee_name: string;
   
   @Column()
-  phonenumber: Number;
+  phonenumber: number;
 
   @Column()
   city: string;
 
   @Column()
-  state : string;
+  state: string;
 
   @Column()
-  postal_code : string;
+  postal_code: string;
 
-  @ManyToMany(() => Users, (users) => users.addresses)
-  users: Users[];
+  @ManyToMany(() => Users, (user) => user.addresses)
+  @JoinTable({
+    name: 'address_user',
+    joinColumn: {
+      name: 'addressId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'userId',
+      referencedColumnName: 'id',
+    },
+  })
+  user: Users[];
+
+  @OneToMany(() => address_user, (addressUser) => addressUser.address)
+  addressUsers: address_user[];
 }

@@ -4,9 +4,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path'; // Import module path
 // import { FirebaseController } from './modules/firebase/firebase.controller';
-// import { FirebaseService } from './modules/firebase/firebase.service';
+import { FirebaseService } from './modules/firebase/firebase.service';
 import { PassportModule } from '@nestjs/passport';
-// import { GoogleStrategy } from './modules/strategies/google.strategy';
+import { CartsModule } from './modules/carts/carts.module';
+import { CategoryModule } from './modules/category/category.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { ProductsModule } from './modules/products/products.module';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { RolesModule } from './modules/roles/roles.module';
+// import { AddressModule } from './modules/address/address.module';
+import { GoogleStrategy } from './modules/strategies/google.strategy';
 // import * as redisStore from 'cache-manager-redis-store';
 
 
@@ -38,11 +46,17 @@ import { PassportModule } from '@nestjs/passport';
       }),
       inject: [ConfigService], 
     }),
-  
-  
+    CartsModule,
+    AuthModule,
+    CategoryModule,
+    PaymentModule,
+    ProductsModule,
+    UsersModule,
+    RolesModule
+    // AddressModule
   ],
   controllers: [],
-  providers: [],
+  providers: [FirebaseService ,GoogleStrategy,],
 })
 export class AppModule {
   

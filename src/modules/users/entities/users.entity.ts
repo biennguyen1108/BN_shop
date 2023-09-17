@@ -1,10 +1,9 @@
-// user.entity.ts
-import { Address } from 'src/modules/address/entities';
-import { Carts } from 'src/modules/carts/entities/carts.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, ManyToOne, JoinColumn, OneToOne, JoinTable } from 'typeorm';
+import { address_user } from 'src/modules/address/entities/address_user.entity';
 import { Order } from 'src/modules/orders/entities/order.entity';
 import { Roles } from 'src/modules/roles/entities/roles.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
-
+import { Address } from 'src/modules/address/entities/address.entity';
+import { Carts } from 'src/modules/carts/entities/carts.entity';
 
 @Entity()
 export class Users {
@@ -17,34 +16,42 @@ export class Users {
   @Column()
   password: string;
 
-  @Column({nullable:true})
-  address: string;
-
-  @Column({nullable:true})
+  @Column({ nullable: true })
   full_name: string;
 
   @Column()
   status: string;
-  
-  @Column({nullable:true})
+
+  @Column({ nullable: true })
   phonenumber: number;
 
-  @Column({default:null})
+  @Column({ default: null })
   refreshToken: string;
 
-    // mối quan hệ với bảng role
   @ManyToOne(() => Roles, role => role.user)
   @JoinColumn({ name: 'role_id'})
   role: Roles;
-    // mối quan hệ với bảng carts
+
   @OneToOne(() => Carts,cart => cart.user)
   cart: Carts;
   
-  @ManyToMany(() => Address, (address) => address.users)
-  @JoinTable()
-  addresses: Address[];
-  
+  @OneToMany(() => address_user, (addressUser) => addressUser.user)
+  addressUsers: address_user[];
+
   @OneToMany(() => Order, (order) => order.users)
   orders: Order[];
-}
 
+  @ManyToMany(() => Address, address => address.user)
+  @JoinTable({
+    name: 'address_user',
+    joinColumn: {
+      name: 'userId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'addressId',
+      referencedColumnName: 'id',
+    },
+  })
+  addresses: Address[];
+}

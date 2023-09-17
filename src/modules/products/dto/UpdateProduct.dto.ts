@@ -6,11 +6,10 @@ export class UpdateProductDTO {
     price: number;
     description: string;
     image: string;
-    product_availability: string;
     sku: number;
-    quantity_sold: number;
-    quantity_inventory: number; 
+    sold_quantity: number;
+    quantity: number; 
     status: string;
-    delete_At: Date;
+    delete_at: Date;
     category: Category ;
 }
