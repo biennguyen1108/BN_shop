@@ -1,11 +1,11 @@
 // carts-products.entity.ts
 import { Entity, ManyToOne, Column, JoinColumn, PrimaryColumn } from 'typeorm';
-import { wishlist } from './wishlist.entity';
+import { Wishlists } from './wishlist.entity';
 import { Products } from 'src/modules/products/entities/products.entity';
 
 @Entity()
-export class wishlist_product {
-  push(wishlist_product: wishlist_product) {
+export class WishlistsProduct {
+  push(WishlistsProduct: WishlistsProduct) {
       throw new Error('Method not implemented.');
   }
   @PrimaryColumn({ name: 'wishlistId' })
@@ -17,11 +17,11 @@ export class wishlist_product {
   @Column({ default: 1 }) 
   quantity: number;
 
-  @ManyToOne(() => wishlist, wishlist => wishlist.wishlist_product)
+  @ManyToOne(() => Wishlists, wishlist => wishlist.wishlistsProduct)
   @JoinColumn({ name: "wishlistId", referencedColumnName: 'id' })
-  wishlist: wishlist;
+  wishlist: Wishlists;
 
-  @ManyToOne(() => Products, product => product.wishlist_product)
+  @ManyToOne(() => Products, product => product.wishlistsProduct)
   @JoinColumn({ name: "productId", referencedColumnName: 'id' })
   product: Products;
 

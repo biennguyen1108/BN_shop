@@ -1,42 +1,44 @@
-// import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-// import { CartsService } from './carts.service';
-// import { Carts, CartsProducts } from './entities';
-// import { updateCartDTO } from './dto/updateCart.dto';
-// import { AuthGuard } from '../guards/auth.guard';
-// import { RoleGuard } from '../guards/role.guard';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/auth.guard';
+import { RoleGuard } from '../guards/role.guard';
+import { updateWishlistDTO } from './dto/updateWishlist.dto';
+import { WishlistService } from './wishlist .service';
+import { Wishlists} from './entities';
+import { WishlistsProduct} from './entities/wishlist_products.entity';
 
-// @Controller('carts')
 
-// export class CartsController {
+@Controller('wishlist')
 
-//     constructor(private readonly cartsService: CartsService) { }
+export class WishlishController {
 
-//     @UseGuards(new RoleGuard(['user']))
-//     @UseGuards(AuthGuard)
-//     @Get(':userId')
-//     async getCartsByUserId(@Param('userId') userId: number) {
-//         return this.cartsService.getCartsByUserId(userId);
-//     }
+    constructor(private readonly wishlistsService: WishlistService) { }
 
-//     @UseGuards(new RoleGuard(['user']))
-//     @UseGuards(AuthGuard)
-//     @Post('/userId/:userId/productId/:productId')
-//     async addToCart(@Param('userId') userId: number, @Param('productId') productId: number): Promise<string> {
-//         return this.cartsService.addToCart(userId, productId);
-//     }
+    @UseGuards(new RoleGuard(['user']))
+    @UseGuards(AuthGuard)
+    @Get(':userId')
+    async getWishlistByUserId(@Param('userId') userId: number) {
+        return this.wishlistsService.getWishlistByUserId(userId);
+    }
 
-//     @UseGuards(new RoleGuard(['user']))
-//     @UseGuards(AuthGuard)
-//     @Patch()
-//     async updateCart(@Body() updateToCartDTO: updateCartDTO) {
-//         return await this.cartsService.updateCart(updateToCartDTO);
-//     }
+    @UseGuards(new RoleGuard(['user']))
+    @UseGuards(AuthGuard)
+    @Post('/userId/:userId/productId/:productId')
+    async addToWishlist(@Param('userId') userId: number, @Param('productId') productId: number): Promise<string> {
+        return this.wishlistsService.addToWishlist(userId, productId);
+    }
 
-//     @UseGuards(new RoleGuard(['user']))
-//     @UseGuards(AuthGuard)
-//     @Delete('remove/:userId/:productId')
-//     async removeFromCart(@Param('userId') cartId: string, @Param('productId') productId: string): Promise<Carts> {
-//     const cart = await this.cartsService.removeFromCart(cartId, productId);
-//     return cart;
-//     }
-// }
+    @UseGuards(new RoleGuard(['user']))
+    @UseGuards(AuthGuard)
+    @Patch()
+    async updateWishlist(@Body() updateWishlistDTO: updateWishlistDTO) {
+        return await this.wishlistsService.updateWishlist(updateWishlistDTO);
+    }
+
+    @UseGuards(new RoleGuard(['user']))
+    @UseGuards(AuthGuard)
+    @Delete('remove/:userId/:productId')
+    async removeFromWishlist(@Param('userId') wishlistId: string, @Param('productId') productId: string): Promise<Wishlists> {
+    const wishlist = await this.wishlistsService.removeFromWishlist(wishlistId, productId);
+    return wishlist;
+    }
+}

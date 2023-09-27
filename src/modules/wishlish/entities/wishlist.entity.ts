@@ -3,11 +3,11 @@ import { Products } from 'src/modules/products/entities/products.entity';
 import { Users } from 'src/modules/users/entities/users.entity';
 import { Entity,PrimaryGeneratedColumn, Column, OneToOne, JoinColumn,OneToMany ,ManyToMany,JoinTable} from 'typeorm';
 import { Transactions } from 'src/modules/transactions/entities/transactions.entity';
-import { wishlist_product } from './wishlist_products.entity';
+import { WishlistsProduct } from './wishlist_products.entity';
 
 
 @Entity()
-export class wishlist {
+export class Wishlists {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -22,8 +22,8 @@ export class wishlist {
   @JoinColumn()
   user: Users;
 
-  @OneToMany(()=>wishlist_product , wishlist_product => wishlist_product.wishlist)
-  wishlist_product: wishlist_product[];
+  @OneToMany(()=>WishlistsProduct , wishlist_product => wishlist_product.wishlist)
+  wishlistsProduct: WishlistsProduct[];
 
   @OneToOne(() => Transactions, Transactions => Transactions.cart)
   @JoinColumn()

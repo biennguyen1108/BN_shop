@@ -9,7 +9,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { successException } from '../Exception/succesExeption';
-
+ 
 @Injectable()
 export class AuthService {
   constructor(
@@ -95,6 +95,7 @@ export class AuthService {
   
     const accessToken = await this.generateAccessToken(user); // Use the updated refreshToken here
     return { accessToken, refreshToken };
+    
   }
   
   private async generateAccessToken(user: Users): Promise<string> {

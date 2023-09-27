@@ -5,6 +5,7 @@ import { Carts, CartsProducts } from './entities';
 import { Products } from '../products/entities';
 import { Users } from '../users/entities';
 import { updateCartDTO } from './dto/updateCart.dto';
+import { successException } from '../Exception/succesExeption';
 
 @Injectable()
 export class CartsService {
@@ -32,15 +33,12 @@ export class CartsService {
     }
 
     async addToCart(@Param('userId') userId: number, @Param('productId') productId: number): Promise<string> {
-
         let cart = await this.cartsRepository.createQueryBuilder('cart')
             .where('cart.user = :userId', { userId })
             .getOne();
-
         let product = await this.productsRepository.createQueryBuilder('product')
             .where('product.id = :productId', { productId })
             .getOne();
-
         let cartsProduct = await this.cartsProductRepository.createQueryBuilder('cartsProduct')
             .where('cartsProduct.productId = :productId', { productId })
             .getOne();
@@ -63,8 +61,7 @@ export class CartsService {
             cart.total_quantity += 1;
             cart.total_price += product.price;
             await this.cartsRepository.save(cart);
-
-            return "Thêm sản phẩm thành công";
+            throw new successException('thêm sản phẩm thành công');
         }
         else {
             if (cartsProduct) {
@@ -73,7 +70,7 @@ export class CartsService {
 
                 cart.total_price += product.price * cartsProduct.quantity;
                 await this.cartsRepository.save(cart);
-                return "Thêm sản phẩm thành công";
+                throw new successException('thêm sản phẩm thành công');
             }
             else {
                 const cartsProduct = new CartsProducts();
@@ -85,32 +82,22 @@ export class CartsService {
                 cart.total_quantity += 1;
                 cart.total_price += product.price;
                 await this.cartsRepository.save(cart)
-
-                return "Thêm sản phẩm thành công";
-
-               
+                throw new successException('thêm sản phẩm thành công');    
             }
-
         }
-       
-
     }
 
     async updateCart(updateCartDTO: updateCartDTO): Promise<Carts> {
         const { userId, productId, operation } = updateCartDTO;
-
         let cart = await this.cartsRepository.createQueryBuilder('cart')
             .where('cart.user = :userId', { userId })
             .getOne();
-
         let product = await this.productsRepository.createQueryBuilder('product')
             .where('product.id = :productId', { productId })
             .getOne();
-
         let cartsProduct = await this.cartsProductRepository.createQueryBuilder('cartsProduct')
             .where('cartsProduct.productId = :productId', { productId })
             .getOne();
-
         if (operation === 'add') {
             cartsProduct.quantity += 1;
             cart.total_price += product.price;
@@ -120,7 +107,6 @@ export class CartsService {
         }
         await this.cartsRepository.save(cart);
         await this.cartsProductRepository.save(cartsProduct);
-
         return cart;
     }
 
@@ -137,16 +123,12 @@ export class CartsService {
                 .where('cartsProduct.productId = :productId', { productId })
                 .andWhere('cartsProduct.cartId = :id', { id :cart.id})
                 .getOne();
-
         if (cartsProduct) {
             await this.cartsProductRepository.remove(cartsProduct);
             cart.total_price -= product.price * cartsProduct.quantity;
             cart.total_quantity -= 1;
             await this.cartsRepository.save(cart);
         }
-
         return cart;
     }
-
-
 }

@@ -1,4 +1,4 @@
-export class updateCartDTO {
+export class updateWishlistDTO {
     userId: string;
     productId: string;
     operation: string;

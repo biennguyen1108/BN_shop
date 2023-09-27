@@ -1,152 +1,145 @@
-// import { Injectable, NotFoundException, Param } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { Carts, CartsProducts } from './entities';
-// import { Products } from '../products/entities';
-// import { Users } from '../users/entities';
-// import { updateCartDTO } from './dto/updateCart.dto';
+import { Injectable, NotFoundException, Param } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Wishlists} from './entities';
+import { WishlistsProduct} from './entities/wishlist_products.entity';
+import { Products } from '../products/entities';
+import { Users } from '../users/entities';
+import { updateWishlistDTO } from './dto/updateWishlist.dto';
+import { successException } from '../Exception/succesExeption';
 
-// @Injectable()
-// export class CartsService {
-//     constructor(
-//         @InjectRepository(Carts)
-//         private readonly cartsRepository: Repository<Carts>,
-//         @InjectRepository(Products)
-//         private readonly productsRepository: Repository<Products>,
-//         @InjectRepository(CartsProducts)
-//         private readonly cartsProductRepository: Repository<CartsProducts>,
-//         @InjectRepository(Users)
-//         private readonly usersRepository: Repository<Users>,
-//     ) { }
+@Injectable()
+export class  WishlistService {
+    constructor(
+        @InjectRepository(Wishlists)
+        private readonly  wishlistsRepository: Repository<Wishlists>,
+        @InjectRepository(Products)
+        private readonly productsRepository: Repository<Products>,
+        @InjectRepository(WishlistsProduct)
+        private readonly  wishlistsProductRepository: Repository<WishlistsProduct>,
+        @InjectRepository(Users)
+        private readonly usersRepository: Repository<Users>,
+    ) { }
 
-//     async getCartsByUserId(@Param('userId') userId: number): Promise<Carts[]> {
-//         const carts = await this.cartsRepository.createQueryBuilder('cart')
-//             .leftJoinAndSelect('cart.cartsProduct', 'cartsProduct')
-//             .leftJoinAndSelect('cartsProduct.product', 'product')
-//             .where('cart.user = :userId', { userId })
-//             .getMany();
-//             if (!carts || carts.length === 0) {
-//                 throw new NotFoundException(`No carts found for userId ${userId}`);
-//             }
-//         return carts;
-//     }
+    async getWishlistByUserId(@Param('userId') userId: number): Promise<Wishlists[]> {
+        const wishlist = await this.wishlistsRepository.createQueryBuilder('wishlist')
+            .leftJoinAndSelect('wishlist.wishlistsProduct', 'wishlistsProduct')
+            .leftJoinAndSelect('wishlistsProduct.product', 'product')
+            .where('wishlist.user = :userId', { userId })
+            .getMany();
+            if (!wishlist || wishlist.length === 0) {
+                throw new NotFoundException(`No wishlist found for userId ${userId}`);
+            }
+        return wishlist;
+    }
 
-//     async addToCart(@Param('userId') userId: number, @Param('productId') productId: number): Promise<string> {
+    async addToWishlist(@Param('userId') userId: number, @Param('productId') productId: number): Promise<string> {
+        let wishlist = await this.wishlistsRepository.createQueryBuilder('wishlist')
+            .where('wishlist.user = :userId', { userId })
+            .getOne();
 
-//         let cart = await this.cartsRepository.createQueryBuilder('cart')
-//             .where('cart.user = :userId', { userId })
-//             .getOne();
+        let product = await this.productsRepository.createQueryBuilder('product')
+            .where('product.id = :productId', { productId })
+            .getOne();
 
-//         let product = await this.productsRepository.createQueryBuilder('product')
-//             .where('product.id = :productId', { productId })
-//             .getOne();
+        let wishlistsProduct = await this.wishlistsProductRepository.createQueryBuilder('wishlistsProduct')
+            .where('wishlistsProduct.productId = :productId', { productId })
+            .getOne();
 
-//         let cartsProduct = await this.cartsProductRepository.createQueryBuilder('cartsProduct')
-//             .where('cartsProduct.productId = :productId', { productId })
-//             .getOne();
+        if (!wishlist) {
+            // Nếu giỏ hàng chưa tồn tại, tạo giỏ hàng mới
+            const user = await this.usersRepository.findOne({ where: { id: userId } });
+            wishlist = new Wishlists();
+            wishlist.user = user;
+            wishlist.total_price = 0;
+            wishlist.total_quantity = 0;
+            await this.wishlistsRepository.save(wishlist);
 
-//         if (!cart) {
-//             // Nếu giỏ hàng chưa tồn tại, tạo giỏ hàng mới
-//             const user = await this.usersRepository.findOne({ where: { id: userId } });
-//             cart = new Carts();
-//             cart.user = user;
-//             cart.total_price = 0;
-//             cart.total_quantity = 0;
-//             await this.cartsRepository.save(cart);
+            const wishlistsProduct = new WishlistsProduct();
+            wishlistsProduct.wishlistId = wishlist.id;
+            wishlistsProduct.productId = productId;
+            wishlistsProduct.quantity = 1;
+            await this.wishlistsProductRepository.save(wishlistsProduct);
 
-//             const cartsProduct = new CartsProducts();
-//             cartsProduct.cartId = cart.id;
-//             cartsProduct.productId = productId;
-//             cartsProduct.quantity = 1;
-//             await this.cartsProductRepository.save(cartsProduct);
+            wishlist.total_quantity += 1;
+            wishlist.total_price += product.price;
+            await this.wishlistsRepository.save(wishlist);
+            throw new successException('thêm sản phẩm thành công');    
 
-//             cart.total_quantity += 1;
-//             cart.total_price += product.price;
-//             await this.cartsRepository.save(cart);
+        }
+        else {
+            if (wishlistsProduct) {
+                wishlistsProduct.quantity += 1
+                await this.wishlistsProductRepository.save(wishlistsProduct);
 
-//             return "Thêm sản phẩm thành công";
-//         }
-//         else {
-//             if (cartsProduct) {
-//                 cartsProduct.quantity += 1
-//                 await this.cartsProductRepository.save(cartsProduct);
+                wishlist.total_price += product.price * wishlistsProduct.quantity;
+                await this.wishlistsRepository.save(wishlist);
+                throw new successException('thêm sản phẩm thành công');    
 
-//                 cart.total_price += product.price * cartsProduct.quantity;
-//                 await this.cartsRepository.save(cart);
-//                 return "Thêm sản phẩm thành công";
-//             }
-//             else {
-//                 const cartsProduct = new CartsProducts();
-//                 cartsProduct.cartId = cart.id;
-//                 cartsProduct.productId = productId;
-//                 cartsProduct.quantity = 1;
-//                 await this.cartsProductRepository.save(cartsProduct);
-//                 // Cập nhật thông tin của giỏ hàng
-//                 cart.total_quantity += 1;
-//                 cart.total_price += product.price;
-//                 await this.cartsRepository.save(cart)
+            }
+            else {
+                const wishlistsProduct = new WishlistsProduct();
+                wishlistsProduct.wishlistId = wishlist.id;
+                wishlistsProduct.productId = productId;
+                wishlistsProduct.quantity = 1;
+                await this.wishlistsProductRepository.save(wishlistsProduct);
+                // Cập nhật thông tin của giỏ hàng
+                wishlist.total_quantity += 1;
+                wishlist.total_price += product.price;
+                await this.wishlistsRepository.save(wishlist)
+                throw new successException('thêm sản phẩm thành công');    
+            }
+        }
+    }
 
-//                 return "Thêm sản phẩm thành công";
+    async updateWishlist(updateWishlistDTO: updateWishlistDTO): Promise<Wishlists> {
+        const { userId, productId, operation } = updateWishlistDTO;
 
-               
-//             }
+        let wishlist = await this.wishlistsRepository.createQueryBuilder('wishlist')
+            .where('wishlist.user = :userId', { userId })
+            .getOne();
 
-//         }
-       
+        let product = await this.productsRepository.createQueryBuilder('product')
+            .where('product.id = :productId', { productId })
+            .getOne();
 
-//     }
+        let wishlistsProduct = await this.wishlistsProductRepository.createQueryBuilder('cartsProduct')
+            .where('wishlist_product.productId = :productId', { productId })
+            .getOne();
 
-//     async updateCart(updateCartDTO: updateCartDTO): Promise<Carts> {
-//         const { userId, productId, operation } = updateCartDTO;
+        if (operation === 'add') {
+            wishlistsProduct.quantity += 1;
+            wishlist.total_price += product.price;
+        } else if (operation === 'remove') {
+            wishlistsProduct.quantity -= 1;
+            wishlist.total_price -= product.price;
+        }
+        await this.wishlistsRepository.save(wishlist);
+        await this.wishlistsProductRepository.save(wishlistsProduct);
 
-//         let cart = await this.cartsRepository.createQueryBuilder('cart')
-//             .where('cart.user = :userId', { userId })
-//             .getOne();
+        return wishlist;
+    }
 
-//         let product = await this.productsRepository.createQueryBuilder('product')
-//             .where('product.id = :productId', { productId })
-//             .getOne();
+    async removeFromWishlist(userId: string, productId: string): Promise<Wishlists> {
+        let wishlist = await this.wishlistsRepository.createQueryBuilder('wishlist')
+            .where('wishlist.user = :userId', { userId })
+            .getOne();
 
-//         let cartsProduct = await this.cartsProductRepository.createQueryBuilder('cartsProduct')
-//             .where('cartsProduct.productId = :productId', { productId })
-//             .getOne();
+        let product = await this.productsRepository.createQueryBuilder('product')
+            .where('product.id = :productId', { productId })
+            .getOne();
 
-//         if (operation === 'add') {
-//             cartsProduct.quantity += 1;
-//             cart.total_price += product.price;
-//         } else if (operation === 'remove') {
-//             cartsProduct.quantity -= 1;
-//             cart.total_price -= product.price;
-//         }
-//         await this.cartsRepository.save(cart);
-//         await this.cartsProductRepository.save(cartsProduct);
+            let wishlistsProduct = await this.wishlistsProductRepository.createQueryBuilder('wishlistsProduct')
+                .where('wishlistsProduct.productId = :productId', { productId })
+                .andWhere('wishlistsProduct.cartId = :id', { id :wishlist.id})
+                .getOne();
 
-//         return cart;
-//     }
-
-//     async removeFromCart(userId: string, productId: string): Promise<Carts> {
-//         let cart = await this.cartsRepository.createQueryBuilder('cart')
-//             .where('cart.user = :userId', { userId })
-//             .getOne();
-
-//         let product = await this.productsRepository.createQueryBuilder('product')
-//             .where('product.id = :productId', { productId })
-//             .getOne();
-
-//             let cartsProduct = await this.cartsProductRepository.createQueryBuilder('cartsProduct')
-//                 .where('cartsProduct.productId = :productId', { productId })
-//                 .andWhere('cartsProduct.cartId = :id', { id :cart.id})
-//                 .getOne();
-
-//         if (cartsProduct) {
-//             await this.cartsProductRepository.remove(cartsProduct);
-//             cart.total_price -= product.price * cartsProduct.quantity;
-//             cart.total_quantity -= 1;
-//             await this.cartsRepository.save(cart);
-//         }
-
-//         return cart;
-//     }
-
-
-// }
+        if (wishlistsProduct) {
+            await this.wishlistsProductRepository.remove(wishlistsProduct);
+            wishlist.total_price -= product.price * wishlistsProduct.quantity;
+            wishlist.total_quantity -= 1;
+            await this.wishlistsRepository.save(wishlist);
+        }
+        return wishlist;
+    }
+}
